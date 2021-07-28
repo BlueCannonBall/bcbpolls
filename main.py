@@ -1,5 +1,5 @@
 from flask import Flask, request, send_from_directory
-import string, random, json, hashlib, waitress, logging, os
+import string, random, json, hashlib, waitress, logging, os, html
 
 logger = logging.getLogger('waitress')
 logger.setLevel(logging.INFO)
@@ -68,27 +68,27 @@ def send_index():
 
 @app.route("/api/signup", methods=['POST', 'GET'])
 def signup():
-    if request.args['username'] in accounts:
+    if html.escape(request.args['username']) in accounts:
         return "Imagine signing up twice", 400
-    accounts[request.args['username']] = hashlib.sha256(request.args['password'].encode()).hexdigest()
+    accounts[html.escape(request.args['username'])] = hashlib.sha256(request.args['password'].encode()).hexdigest()
     save_accounts(accounts);
 
     return "Successfully signed up", 200
 
 @app.route("/api/login", methods=['POST', 'GET'])
 def login():
-    if request.args['username'] not in accounts:
+    if html.escape(request.args['username']) not in accounts:
         return "Imagine logging into a nonexistent account", 400
     
-    if accounts[request.args['username']] == hashlib.sha256(request.args['password'].encode()).hexdigest():
+    if accounts[html.escape(request.args['username'])] == hashlib.sha256(request.args['password'].encode()).hexdigest():
         return "Successfully logged in", 200
 
     return "Wrong password 😂", 401
 
 @app.route("/api/createPoll", methods=['POST'])
 def create_poll():
-    if request.args['username'] in accounts:
-        if hashlib.sha256(request.args['password'].encode()).hexdigest() != accounts[request.args['username']]:
+    if html.escape(request.args['username']) in accounts:
+        if hashlib.sha256(request.args['password'].encode()).hexdigest() != accounts[html.escape(request.args['username'])]:
             return "Incorrect password", 403
     else:
         return "Log in or sign up please", 401
@@ -102,26 +102,26 @@ def create_poll():
             break
 
     polls[c] = {
-        "topic": request.json["topic"],
-        "owner": request.args['username'],
+        "topic": html.escape(request.json["topic"]),
+        "owner": html.escape(request.args['username']),
         "results": {}
     }
     for option in request.json["options"]:
-        polls[c]["results"][option] = []
+        polls[c]["results"][html.escape(option)] = []
 
     save_polls(polls)
     return c
 
 @app.route("/api/deletePoll", methods=['POST', 'GET'])
 def delete_poll():
-    if request.args['username'] in accounts:
-        if hashlib.sha256(request.args['password'].encode()).hexdigest() != accounts[request.args['username']]:
+    if html.escape(request.args['username']) in accounts:
+        if hashlib.sha256(request.args['password'].encode()).hexdigest() != accounts[html.escape(request.args['username'])]:
             return "Incorrect password", 403
     else:
         return "Log in or sign up please", 401
 
     c = request.args["code"]
-    if request.args['username'] != polls[c]["owner"]:
+    if html.escape(request.args['username']) != polls[c]["owner"]:
         return "You don't own this poll", 403
     del polls[c]
 
@@ -149,38 +149,38 @@ def get_poll_info():
 
 @app.route("/api/vote", methods=['POST', 'GET'])
 def vote():
-    if request.args['username'] in accounts:
-        if hashlib.sha256(request.args['password'].encode()).hexdigest() != accounts[request.args['username']]:
+    if html.escape(request.args['username']) in accounts:
+        if hashlib.sha256(request.args['password'].encode()).hexdigest() != accounts[html.escape(request.args['username'])]:
             return "Incorrect password", 403
     else:
         return "Log in or sign up please", 401
 
     c = request.args["code"]
-    if request.args['username'] in polls[c]["results"][request.args["option"]]:
+    if html.escape(request.args['username']) in polls[c]["results"][request.args["option"]]:
         return "You already voted for that option smh my head", 409
 
     for option in polls[c]["results"]:
-        polls[c]["results"][option][:] = [user for user in polls[c]["results"][option] if user != request.args["username"]]
+        polls[c]["results"][option][:] = [user for user in polls[c]["results"][option] if user != html.escape(request.args['username'])]
 
     if request.args["option"] not in polls[c]["results"]:
         return "Please vote for a legit option", 400
 
-    polls[c]["results"][request.args["option"]].append(request.args['username'])
+    polls[c]["results"][request.args["option"]].append(html.escape(request.args['username']))
 
     save_polls(polls)
     return f"Successfully voted: {request.args['option']}"
 
 @app.route("/api/unvote", methods=['POST', 'GET'])
 def unvote():
-    if request.args['username'] in accounts:
-        if hashlib.sha256(request.args['password'].encode()).hexdigest() != accounts[request.args['username']]:
+    if html.escape(request.args['username']) in accounts:
+        if hashlib.sha256(request.args['password'].encode()).hexdigest() != accounts[html.escape(request.args['username'])]:
             return "Incorrect password", 403
     else:
         return "Log in or sign up please", 401
 
     c = request.args["code"]
     for option in polls[c]["results"]:
-        polls[c]["results"][option][:] = [user for user in polls[c]["results"][option] if user != request.args["username"]]
+        polls[c]["results"][option][:] = [user for user in polls[c]["results"][option] if user != html.escape(request.args['username'])]
 
     save_polls(polls)
     return "Removed vote"
