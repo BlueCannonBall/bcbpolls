@@ -1,10 +1,13 @@
 from flask import Flask, request, send_from_directory
-import string, random, json, hashlib, waitress, logging, os, html
+import string, random, json, hashlib, waitress, logging, os, html, threading
 
 logger = logging.getLogger('waitress')
 logger.setLevel(logging.INFO)
 
+db_lock = threading.Lock()
+
 def load_polls():
+    db_lock.acquire()
     polls_file = open("polls.json", "r")
     data = None
     try:
@@ -12,14 +15,18 @@ def load_polls():
     except json.decoder.JSONDecodeError:
         data = {}
     polls_file.close()
+    db_lock.release()
     return data
 
 def save_polls(content):
+    db_lock.acquire()
     polls_file = open("polls.json", "w")
     polls_file.write(json.dumps(content))
     polls_file.close()
+    db_lock.release()
 
 def load_accounts():
+    db_lock.acquire()
     accounts_file = open("accounts.json", "r")
     data = None
     try:
@@ -27,12 +34,15 @@ def load_accounts():
     except json.decoder.JSONDecodeError:
         data = {}
     accounts_file.close()
+    db_lock.release()
     return data
 
 def save_accounts(content):
+    db_lock.acquire()
     accounts_file = open("accounts.json", "w")
     accounts_file.write(json.dumps(content))
     accounts_file.close()
+    db_lock.release()
 
 def gen_code(length):
     return "".join(random.choice(string.ascii_letters + string.digits) for _ in range(length))
