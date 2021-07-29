@@ -70,17 +70,15 @@
         username: usernameInput.value,
         password: passwordInput.value,
       })).then(response => {
-        if (response.status == 200) {
-          localStorage.setItem("username", usernameInput.value);
-          localStorage.setItem("password", passwordInput.value);
-          window.location.href = window.location.origin;
-        }
-        window.response = response;
-        return response.text();
-      }).then(text => {
-        if (window.response.status != 200) {
-          alert(`Failed to login: ${text}`);
-        }
+        response.text().then(text => {
+          if (response.status == 200) {
+            localStorage.setItem("username", usernameInput.value);
+            localStorage.setItem("password", passwordInput.value);
+            window.location.href = window.location.origin;
+          } else {
+            alert(`Failed to login: ${text}`);
+          }
+        });
       });
     }
   </script>
