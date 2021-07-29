@@ -86,14 +86,13 @@
           options: optionsInput.value.split(",")
         })
       }).then(response => {
-        window.response = response;
-        return response.text();
-      }).then(text => {
-        if (window.response.status != 200) {
-          alert(`Failed to create poll: ${text}`);
-        } else {
-          window.location.href = window.location.origin + "/poll.html?" + text;
-        }
+        response.text().then(text => {
+          if (response.status != 200) {
+            alert(`Failed to create poll: ${text}`);
+          } else {
+            window.location.href = window.location.origin + "/poll.html?" + text;
+          }
+        });
       });
     }
   </script>

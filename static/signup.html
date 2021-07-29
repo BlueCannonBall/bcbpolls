@@ -69,15 +69,13 @@
         username: usernameInput.value,
         password: passwordInput.value,
       })).then(response => {
-        if (response.status == 200) {
-          window.location.href = window.location.origin + "/login.html";
-        }
-        window.response = response;
-        return response.text();
-      }).then(text => {
-        if (window.response.status != 200) {
-          alert(`Failed to signup: ${text}`);
-        }
+        response.text().then(text => {
+          if (response.status == 200) {
+            window.location.href = window.location.origin + "/login.html";
+          } else {
+            alert(`Failed to signup: ${text}`);
+          }
+        });
       });
     }
   </script>
