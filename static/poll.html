@@ -88,7 +88,7 @@ crossorigin="anonymous"
   });
   var c;
 
-  function init() {
+  function init(firstTime = false) {
     if (window.location.search.length > 2) {
       c = window.location.search.substring(1);
       let pollTopic = document.getElementById("pollTopic");
@@ -106,10 +106,8 @@ crossorigin="anonymous"
           window.location.href = window.location.origin;
         }
         let data = JSON.parse(text);
-        console.log("Received poll data:", data);
-        pollTopic.innerHTML = "Poll topic: " + data.topic;
+        if (firstTime) pollTopic.innerHTML = "Poll topic: " + data.topic;
         let colorPalette = palette('cb-Set1', Object.keys(data.results).length);
-        console.log("Colors:", colorPalette);
         let new_data = {
           labels: Object.keys(data.results),
           datasets: [{
@@ -125,10 +123,12 @@ crossorigin="anonymous"
           chart.update();
         }
 
-        voteOption.innerHTML = "";
-        let options = Object.keys(data.results);
-        for (let option in options) {
-          voteOption.innerHTML += `<option value="${options[option]}">${options[option]}</option>`
+        if (firstTime) {
+          voteOption.innerHTML = "";
+          let options = Object.keys(data.results);
+          for (let option in options) {
+            voteOption.innerHTML += `<option value="${options[option]}">${options[option]}</option>`
+          }
         }
       });
     } else {
@@ -222,7 +222,7 @@ crossorigin="anonymous"
     });
   }
 
-  init();
+  init(true);
   setInterval(init, 1000);
 </script>
 </body>
